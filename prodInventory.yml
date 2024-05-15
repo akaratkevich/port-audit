@@ -1,0 +1,9 @@
+devices:
+  - host: "172.31.255.2"
+    port: "22"
+    platform: "nxos"
+    transport: "ssh"
+  - host: "172.31.255.3"
+    port: "22"
+    platform: "nxos"
+    transport: "telnet"
