@@ -65,6 +65,33 @@ Users have the option to select the command that will be executed against the in
 ![image](https://github.com/akaratkevich/port-audit/assets/37665008/d0734c5e-accc-440b-8e38-b7c8680c72b6)
 
 
+## Additional Functionalities
+
+-	Ability to generate basic inventory yaml file from a list of devices.
+
+Running it is pretty simple, using flags `-gen -f ./Path to the file that lists the devices`
+
+For example:
+router_1 
+router_2
+router_3
+
+This will generate a file containing the following with some default values:
+
+ ![image](https://github.com/akaratkevich/port-audit/assets/37665008/fbd3f83f-523b-4df7-9d73-a57384e53451)
+
+If you want to be more selective about the values, you can provide them in the list:
+
+For example: 
+
+Router_1 22 ios ssh
+Router_2 23 nxos ssh
+
+[host][port][platform][transport]
+ 
+![image](https://github.com/akaratkevich/port-audit/assets/37665008/04289d45-e8c3-4055-9b43-bceb18b0b39d)
+
+
 ## Future Development:
 
 Plans are underway to expand support to additional platforms and commands, enhancing the tool's versatility and adaptability to different network environments.
