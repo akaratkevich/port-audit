@@ -117,7 +117,6 @@ func parseInterfaceDescription(line string, regex *regexp.Regexp, device Device)
 	}
 }
 
-// parseInterfaceDescription parses a single line of output from 'show interfaces description' for IOS devices.
 func parseInterfaceDescriptionIOSXR(line string, regex *regexp.Regexp, device Device) *InterfaceData {
 	matches := regex.FindStringSubmatch(line)
 	if matches == nil {
@@ -131,7 +130,6 @@ func parseInterfaceDescriptionIOSXR(line string, regex *regexp.Regexp, device De
 		}
 	}
 
-	// Concatenate the 'Status' and 'LineProtocol' fields for the 'Status' entry of InterfaceData.
 	status := paramMap["Status"]
 	if protocol := paramMap["Protocol"]; protocol != "" {
 		status += " (" + protocol + ")" // Add protocol status in parentheses if it's non-empty.
