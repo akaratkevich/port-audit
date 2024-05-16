@@ -45,10 +45,11 @@ func main() {
 
 	// 1.5 Setup menu
 	// Define command options and their corresponding SSH commands
-	options := []string{"NXOS/IOS - show interface status", "IOS - show interface description"}
+	options := []string{"NXOS/IOS - show interface status", "IOS - show interface description", "IOSXR - show interface description"}
 	commands := map[string]string{
-		"NXOS/IOS - show interface status": "show interface status",
-		"IOS - show interface description": "show interface description",
+		"NXOS/IOS - show interface status":   "show interface status",
+		"IOS - show interface description":   "show interface description",
+		"IOSXR - show interface description": "show interface description",
 	}
 
 	// Interactive menu to select a command

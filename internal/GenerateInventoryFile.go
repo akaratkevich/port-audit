@@ -48,7 +48,7 @@ func getPart(parts []string, index int) string {
 	if index < len(parts) && parts[index] != "" {
 		return parts[index]
 	}
-	// Check if the missing part is the port and provide a default value
+	// Check if the missing part and provide a default value
 	if index == 1 {
 		return "22"
 	}

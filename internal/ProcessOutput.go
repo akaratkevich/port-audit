@@ -9,8 +9,9 @@ import (
 
 // Define regex patterns for different platforms
 var (
-	RegexInterfaceStatus      = showIntStatus
-	RegexInterfaceDescription = showIntDescription
+	RegexInterfaceStatus           = showIntStatus
+	RegexInterfaceDescription      = showIntDescription
+	RegexInterfaceDescriptionIOSXR = showInterfaceDescriptionIOSXR
 )
 
 /*
@@ -34,7 +35,8 @@ func ProcessOutput(output string, device Device, dataChan chan<- InterfaceData) 
 			data = parseInterfaceStatus(line, RegexInterfaceStatus, device) // Show interface status
 		case "ios":
 			data = parseInterfaceDescription(line, RegexInterfaceDescription, device) // Show interface description
-			//case "iosxr": data = parseInterfaceStatus(line, RegexIOSXR, device)
+		case "iosxr":
+			data = parseInterfaceDescriptionIOSXR(line, RegexInterfaceDescriptionIOSXR, device)
 		}
 		if data != nil {
 			// ! DEBUGGING !
@@ -112,5 +114,34 @@ func parseInterfaceDescription(line string, regex *regexp.Regexp, device Device)
 		Description: paramMap["Description"], // Optional, could be empty
 		Status:      status,                  // Status + Protocol
 		// Note: VLAN, Duplex, Speed, and Type are not available from 'show interfaces description'
+	}
+}
+
+// parseInterfaceDescription parses a single line of output from 'show interfaces description' for IOS devices.
+func parseInterfaceDescriptionIOSXR(line string, regex *regexp.Regexp, device Device) *InterfaceData {
+	matches := regex.FindStringSubmatch(line)
+	if matches == nil {
+		return nil
+	}
+
+	paramMap := make(map[string]string)
+	for i, name := range regex.SubexpNames() {
+		if i > 0 && i <= len(matches) && name != "" {
+			paramMap[name] = matches[i]
+		}
+	}
+
+	// Concatenate the 'Status' and 'LineProtocol' fields for the 'Status' entry of InterfaceData.
+	status := paramMap["Status"]
+	if protocol := paramMap["Protocol"]; protocol != "" {
+		status += " (" + protocol + ")" // Add protocol status in parentheses if it's non-empty.
+	}
+
+	// Populate only the available fields from the 'show interfaces description' output
+	return &InterfaceData{
+		Node:        device.Host,
+		Interface:   paramMap["Interface"],
+		Description: paramMap["Description"], // This field may be optional and could be empty
+		Status:      status,                  // Combines status and line protocol
 	}
 }
