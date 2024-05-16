@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/pterm/pterm"
-	"go-port-audit-v4/internal"
 	"log"
 	"os"
+	"port-audit/internal"
 	"sync"
 	"time"
 )
