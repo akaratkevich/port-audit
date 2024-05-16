@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/pterm/pterm"
-	"go-port-audit-v4/subFunctions"
+	"go-port-audit-v4/internal"
 	"log"
 	"os"
 	"sync"
@@ -31,7 +31,7 @@ func main() {
 	// ---- !!! FROM THIS POINT ON, ALL LOG MESSAGES WILL BE WRITTEN TO THE FILE !!! ----
 
 	// 1. Setup and parse command-line arguments
-	username, password, inventoryFile, baseFile, err := subFunctions.SetupFlags()
+	username, password, inventoryFile, baseFile, err := internal.SetupFlags()
 	if err != nil {
 		logger.Fatal("Exiting the program due to setup failure", logger.Args("Reason", err)) // Log to the screen
 		os.Exit(1)
@@ -59,7 +59,7 @@ func main() {
 	logger.Info("Selected command:", logger.Args("Command", pterm.Green(selectedCommand)))
 
 	// 2. Read the inventory file
-	inventory, err := subFunctions.ReadInventory(*inventoryFile, logger)
+	inventory, err := internal.ReadInventory(*inventoryFile, logger)
 	if err != nil {
 		log.Printf("Error: Failed to read inventory: %v. Exiting the program due to inventory load failure.", err) // Log to the file
 		logger.Fatal("Exiting the program due to inventory load failure.", logger.Args("Reason", err))             // Log to the screen
@@ -68,12 +68,12 @@ func main() {
 
 	// 3. Setup concurrency
 	logger.Trace("Initialising concurrency...") // Log to the screen
-	dataChan := make(chan subFunctions.InterfaceData)
+	dataChan := make(chan internal.InterfaceData)
 	var wg sync.WaitGroup
 
 	// Set the number of workers
 	numWorkers := 10
-	workQueue := make(chan subFunctions.Device, len(inventory.Devices))
+	workQueue := make(chan internal.Device, len(inventory.Devices))
 
 	logger.Trace("Launching worker goroutines for device processing...") // Log to the screen
 	// Start worker goroutines
@@ -82,7 +82,7 @@ func main() {
 		go func() {
 			defer wg.Done()
 			for device := range workQueue {
-				subFunctions.ProcessDevice(device, dataChan, *username, *password, selectedCommand)
+				internal.ProcessDevice(device, dataChan, *username, *password, selectedCommand)
 			}
 		}()
 	}
@@ -96,7 +96,7 @@ func main() {
 
 	logger.Trace("Aggregating processed data...") // Log to the screen
 	// Use another goroutine to read from the channel and collect data
-	allData := make([]subFunctions.InterfaceData, 0)
+	allData := make([]internal.InterfaceData, 0)
 	go func() {
 		for data := range dataChan {
 			allData = append(allData, data)
@@ -114,10 +114,10 @@ func main() {
 
 	// 7. Perform Excel operations based on the command line option.
 	logger.Trace("Initiating Excel and data comparison operations, and preparing final reports....") // Log to the screen
-	subFunctions.ExcelOperations(allData, *baseFile, logger)
+	internal.ExcelOperations(allData, *baseFile, logger)
 
 	// 8. Zip the files
-	zipPath, err := subFunctions.ZipAndDeleteFiles("./", logger)
+	zipPath, err := internal.ZipAndDeleteFiles("./", logger)
 	if err != nil {
 		logger.Fatal("Failed to zip and delete files: ", logger.Args("error", err))
 		os.Exit(1)

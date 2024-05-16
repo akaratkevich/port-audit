@@ -1,4 +1,4 @@
-package subFunctions
+package internal
 
 import (
 	"archive/zip"
