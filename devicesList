@@ -1,2 +1,2 @@
-router_1 22 ios ssh
-router_2
+Router_1 22 ios ssh
+Router_2 23 nxos ssh

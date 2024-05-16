@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// GenerateInventory reads device configurations from a specified file and generates a YAML inventory file.
+// Read device configuration from a specified file and generate a YAML inventory file.
 func GenerateInventory(filePath string, logger *pterm.Logger) error {
 	file, err := os.Open(filePath)
 	if err != nil {
