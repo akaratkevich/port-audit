@@ -1,0 +1,15 @@
+2024/05/16 11:48:53 Reading inventory file...
+2024/05/16 11:48:53 Unmarshalling inventory data...
+2024/05/16 11:48:53 Successfully loaded inventory: 2 devices ready for processing.
+2024/05/16 11:48:53 Starting processing for device: 172.31.255.3
+2024/05/16 11:48:53 Starting processing for device: 172.31.255.2
+2024/05/16 11:48:53 Attempting SSH connection to 172.31.255.2:22 with user admin
+2024/05/16 11:48:53 Attempting SSH connection to 172.31.255.3:22 with user admin
+2024/05/16 11:48:58 Error: SSH connection failed for 172.31.255.3; error: Failed to dial SSH to 172.31.255.3:22: dial tcp 172.31.255.3:22: i/o timeout
+2024/05/16 11:48:58 Failed to connect or execute on device 172.31.255.3: Failed to dial SSH to 172.31.255.3:22: dial tcp 172.31.255.3:22: i/o timeout
+2024/05/16 11:48:58 Completed processing for device: 172.31.255.3
+2024/05/16 11:48:58 Error: SSH connection failed for 172.31.255.2; error: Failed to dial SSH to 172.31.255.2:22: dial tcp 172.31.255.2:22: i/o timeout
+2024/05/16 11:48:58 Failed to connect or execute on device 172.31.255.2: Failed to dial SSH to 172.31.255.2:22: dial tcp 172.31.255.2:22: i/o timeout
+2024/05/16 11:48:58 Completed processing for device: 172.31.255.2
+2024/05/16 11:48:58 All processing goroutines completed: data channels closed successfully, and data collected for 0 interfaces.
+2024/05/16 11:48:58 Failed to manage Excel file: open PortAudit.xlsx: The system cannot find the file specified.
