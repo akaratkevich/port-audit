@@ -6,6 +6,7 @@ require (
 	github.com/pterm/pterm v0.12.79
 	github.com/tealeg/xlsx v1.0.5
 	golang.org/x/crypto v0.23.0
+	gopkg.in/yaml.v2 v2.2.4
 	gopkg.in/yaml.v3 v3.0.1
 )
 

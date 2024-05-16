@@ -18,21 +18,25 @@ func main() {
 
 	logger.Trace("Staring the port-audit process...") // Log to the screen
 
-	// Open a file for writing logs.
+	// Open a filePath for writing logs.
 	logFile, err := os.OpenFile("port-audit-application.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		log.Fatalf("Error opening log file: %v", err)
+		log.Fatalf("Error opening log filePath: %v", err)
 	}
 	defer logFile.Close()
 
-	// Set the output of logs to the file
+	// Set the output of logs to the filePath
 	log.SetOutput(logFile)
 
 	// ---- !!! FROM THIS POINT ON, ALL LOG MESSAGES WILL BE WRITTEN TO THE FILE !!! ----
 
 	// 1. Setup and parse command-line arguments
-	username, password, inventoryFile, baseFile, err := internal.SetupFlags()
-	if err != nil {
+	username, password, filePath, baseFile, generateInv, err := internal.SetupFlags()
+	if *generateInv && *filePath != "" {
+		// Call function to generate inventory file
+		internal.GenerateInventory(*filePath, logger)
+		return
+	} else if err != nil {
 		logger.Fatal("Exiting the program due to setup failure", logger.Args("Reason", err)) // Log to the screen
 		os.Exit(1)
 	} else {
@@ -58,10 +62,10 @@ func main() {
 	}
 	logger.Info("Selected command:", logger.Args("Command", pterm.Green(selectedCommand)))
 
-	// 2. Read the inventory file
-	inventory, err := internal.ReadInventory(*inventoryFile, logger)
+	// 2. Read the inventory filePath
+	inventory, err := internal.ReadInventory(*filePath, logger)
 	if err != nil {
-		log.Printf("Error: Failed to read inventory: %v. Exiting the program due to inventory load failure.", err) // Log to the file
+		log.Printf("Error: Failed to read inventory: %v. Exiting the program due to inventory load failure.", err) // Log to the filePath
 		logger.Fatal("Exiting the program due to inventory load failure.", logger.Args("Reason", err))             // Log to the screen
 		os.Exit(1)
 	}
@@ -110,7 +114,7 @@ func main() {
 	logger.Trace("Device processing has finished, and data channels are closed. Data collected.", logger.Args("Total interfaces processed", len(allData))) // Log to the screen
 	logger.Warn("Check the application log for details on connection issues:", logger.Args("Log File", "port-audit-application.log"))                      // Log to the screen
 
-	log.Printf("All processing goroutines completed: data channels closed successfully, and data collected for %d interfaces.", len(allData)) // Log to file
+	log.Printf("All processing goroutines completed: data channels closed successfully, and data collected for %d interfaces.", len(allData)) // Log to filePath
 
 	// 7. Perform Excel operations based on the command line option.
 	logger.Trace("Initiating Excel and data comparison operations, and preparing final reports....") // Log to the screen
@@ -122,7 +126,7 @@ func main() {
 		logger.Fatal("Failed to zip and delete files: ", logger.Args("error", err))
 		os.Exit(1)
 	}
-	//logger.Info("The Excel file is ready for review.", logger.Args("file", "PortAudit.xlsx")) // Log to the screen
+	//logger.Info("The Excel filePath is ready for review.", logger.Args("filePath", "PortAudit.xlsx")) // Log to the screen
 
 	logger.Trace("Port-audit process completed.")
 

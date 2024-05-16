@@ -1,0 +1,9 @@
+devices:
+    - host: router_1
+      port: "22"
+      platform: ios
+      transport: ssh
+    - host: router_2
+      port: "22"
+      platform: ""
+      transport: ssh
