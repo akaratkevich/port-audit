@@ -8,17 +8,14 @@ Port-Audit is a tool designed for network administrators and engineers to automa
 
 ## Capabilities:
 
+> Platform Specificity:
+The method of screen scraping is employed on the devices that do not support structured data to parse the outputs- which necessitates distinct handling between different operating systems due to format variations.
+
 Command Execution: Currently, the application supports the following SSH commands for data collection:
 - ![Static Badge](https://img.shields.io/badge/COMPLETED-green) [NXOS/IOS - show interface status]
 - ![Static Badge](https://img.shields.io/badge/COMPLETED-green) [IOS - show interface description]
-- ![Static Badge](https://img.shields.io/badge/NOT_STARTED-red) [IOSXR]
+- ![Static Badge](https://img.shields.io/badge/STARTED-yellow) [IOSXR - show interface description]
 - ![Static Badge](https://img.shields.io/badge/NOT_STARTED-red) [JUNOS]
-
-> Platform Specificity:
-The method of screen scraping is employed on the devices that do not support structured data to parse the outputs- which necessitates distinct handling between different operating systems due to format variations.
-At this stage the application is capable of being run against IOS/NXOS devices over SSH to gather the output from the following commands:
-- NXOS/IOS - show interface status
-- IOS - show interface description
 
 ### Baseline Comparison:
 
