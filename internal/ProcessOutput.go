@@ -14,6 +14,8 @@ var (
 	RegexInterfaceDescriptionIOSXR = showInterfaceDescriptionIOSXR
 )
 
+var slot, port = ParseSlotAndPort(paramMap["Interface"])
+
 /*
 Scan the output string line by line to extract interface data based on the device's platform.
 The extracted data is then sent to a channel for further processing.
@@ -74,10 +76,13 @@ func parseInterfaceStatus(line string, regex *regexp.Regexp, device Device) *Int
 			paramMap[name] = matches[i]
 		}
 	}
+	//slot, port := ParseSlotAndPort(paramMap["Interface"])
 
 	return &InterfaceData{
 		Node:        device.Host,
 		Interface:   paramMap["Interface"],
+		Slot:        slot,
+		Port:        port,
 		Description: paramMap["Description"],
 		Status:      paramMap["Status"],
 		VLAN:        paramMap["VLAN"],
@@ -111,6 +116,8 @@ func parseInterfaceDescription(line string, regex *regexp.Regexp, device Device)
 	return &InterfaceData{
 		Node:        device.Host,
 		Interface:   paramMap["Interface"],
+		Slot:        slot,
+		Port:        port,
 		Description: paramMap["Description"], // Optional, could be empty
 		Status:      status,                  // Status + Protocol
 		// Note: VLAN, Duplex, Speed, and Type are not available from 'show interfaces description'
@@ -139,6 +146,8 @@ func parseInterfaceDescriptionIOSXR(line string, regex *regexp.Regexp, device De
 	return &InterfaceData{
 		Node:        device.Host,
 		Interface:   paramMap["Interface"],
+		Slot:        slot,
+		Port:        port,
 		Description: paramMap["Description"], // This field may be optional and could be empty
 		Status:      status,                  // Combines status and line protocol
 	}

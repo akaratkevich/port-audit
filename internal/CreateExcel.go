@@ -39,20 +39,11 @@ func CreateExcel(data []InterfaceData, filename string) error {
 
 	// Iterate over the slice of InterfaceData to populate the sheet.
 	for _, ci := range data {
-		// For each InterfaceData item, add a new row.
 		row := sheet.AddRow()
-		// Add cells to the row for each field in the InterfaceData struct.
 		row.AddCell().Value = ci.Node
 		row.AddCell().Value = ci.Interface
-		slot, port, err := SplitInterfaceData(ci.Interface) // Split Interface to get SLOT and PORT
-		if err != nil {
-			log.Printf("Error parsing interface for device %s: %v", ci.Node, err)
-			// Setting default values
-			slot = "Unable to split interface"
-			port = "Unable to split interface"
-		}
-		row.AddCell().Value = slot // SLOT
-		row.AddCell().Value = port // PORT
+		row.AddCell().Value = ci.Slot // Add Slot to Excel
+		row.AddCell().Value = ci.Port // Add Port to Excel
 		row.AddCell().Value = ci.Description
 		row.AddCell().Value = ci.Status
 		row.AddCell().Value = ci.VLAN

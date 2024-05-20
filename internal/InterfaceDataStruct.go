@@ -4,6 +4,8 @@ package internal
 type InterfaceData struct {
 	Node        string
 	Interface   string
+	Slot        string
+	Port        string
 	Description string
 	Status      string
 	VLAN        string

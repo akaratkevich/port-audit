@@ -1,18 +1,14 @@
 package internal
 
 import (
-	"fmt"
-	"regexp"
+	"strings"
 )
 
 // Split interface into slot and port
-func SplitInterfaceData(interfaceStr string) (slot string, port string, err error) {
-	regex := regexp.MustCompile(`\D+(\d+)/(\d+)`)
-	matches := regex.FindStringSubmatch(interfaceStr)
-	if len(matches) < 3 {
-		return "", "", fmt.Errorf("invalid interface format")
+func ParseSlotAndPort(interfaceName string) (string, string) {
+	parts := strings.Split(interfaceName, "/")
+	if len(parts) > 1 {
+		return parts[0][2:], parts[1] // Assumes interface names start with "Gi", "Te", etc.
 	}
-	slot = matches[1]
-	port = matches[2]
-	return slot, port, nil
+	return "", "" // Return empty strings if not parsable
 }
