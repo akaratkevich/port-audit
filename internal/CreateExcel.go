@@ -29,7 +29,7 @@ func CreateExcel(data []InterfaceData, filename string) error {
 	}
 
 	// Column headers for the data to be inserted. These headers correspond to the fields within the InterfaceData struct.
-	headers := []string{"Node", "Interface", "Description", "Status", "VLAN", "Duplex", "Speed", "Type"}
+	headers := []string{"Switch Name", "Interface", "SLOT", "PORT", "Description", "Status", "VLAN", "Duplex", "Speed", "Type"}
 	headerRow := sheet.AddRow()
 	for _, header := range headers {
 		// For each header, add a new cell to the row and set its value.
@@ -44,6 +44,15 @@ func CreateExcel(data []InterfaceData, filename string) error {
 		// Add cells to the row for each field in the InterfaceData struct.
 		row.AddCell().Value = ci.Node
 		row.AddCell().Value = ci.Interface
+		slot, port, err := SplitInterfaceData(ci.Interface) // Split Interface to get SLOT and PORT
+		if err != nil {
+			log.Printf("Error parsing interface for device %s: %v", ci.Node, err)
+			// Setting default values
+			slot = "Unable to split interface"
+			port = "Unable to split interface"
+		}
+		row.AddCell().Value = slot // SLOT
+		row.AddCell().Value = port // PORT
 		row.AddCell().Value = ci.Description
 		row.AddCell().Value = ci.Status
 		row.AddCell().Value = ci.VLAN
