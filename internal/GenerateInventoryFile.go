@@ -43,17 +43,20 @@ func GenerateInventory(filePath string, logger *pterm.Logger) error {
 }
 
 // Returns the string at the index from parts slice, or a default value if the index is out of bounds.
-// Specifically, it returns "22" as a default for the port if not provided and "ssh" as a default for the transport
 func getPart(parts []string, index int) string {
 	if index < len(parts) && parts[index] != "" {
+		// Add quotes around the host field
+		if index == 0 {
+			return fmt.Sprintf("\"%s\"", parts[index])
+		}
 		return parts[index]
 	}
 	// Check if the missing part and provide a default value
 	if index == 1 {
-		return "22"
+		return "22" // Default port
 	}
 	if index == 3 {
-		return "ssh"
+		return "ssh" // Default transport
 	}
 	return ""
 }
