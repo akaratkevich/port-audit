@@ -8,17 +8,14 @@ Port-Audit is a tool designed for network administrators and engineers to automa
 
 ## Capabilities:
 
+> Platform Specificity:
+The method of screen scraping is employed on the devices that do not support structured data to parse the outputs- which necessitates distinct handling between different operating systems due to format variations.
+
 Command Execution: Currently, the application supports the following SSH commands for data collection:
 - ![Static Badge](https://img.shields.io/badge/COMPLETED-green) [NXOS/IOS - show interface status]
 - ![Static Badge](https://img.shields.io/badge/COMPLETED-green) [IOS - show interface description]
-- ![Static Badge](https://img.shields.io/badge/NOT_STARTED-red) [IOSXR]
+- ![Static Badge](https://img.shields.io/badge/STARTED-yellow) [IOSXR - show interface description]
 - ![Static Badge](https://img.shields.io/badge/NOT_STARTED-red) [JUNOS]
-
-> Platform Specificity:
-The method of screen scraping is employed on the devices that do not support structured data to parse the outputs- which necessitates distinct handling between different operating systems due to format variations.
-At this stage the application is capable of being run against IOS/NXOS devices over SSH to gather the output from the following commands:
-- NXOS/IOS - show interface status
-- IOS - show interface description
 
 ### Baseline Comparison:
 
@@ -66,6 +63,33 @@ Users have the option to select the command that will be executed against the in
 ## Run Example:
 
 ![image](https://github.com/akaratkevich/port-audit/assets/37665008/d0734c5e-accc-440b-8e38-b7c8680c72b6)
+
+
+## Additional Functionalities
+
+-	Ability to generate basic inventory yaml file from a list of devices.
+
+Running it is pretty simple, using flags `-gen -f ./Path to the file that lists the devices`
+
+For example:
+router_1 
+router_2
+router_3
+
+This will generate a file containing the following with some default values:
+
+ ![image](https://github.com/akaratkevich/port-audit/assets/37665008/fbd3f83f-523b-4df7-9d73-a57384e53451)
+
+If you want to be more selective about the values, you can provide them in the list:
+
+For example: 
+
+Router_1 22 ios ssh
+Router_2 23 nxos ssh
+
+[host][port][platform][transport]
+ 
+![image](https://github.com/akaratkevich/port-audit/assets/37665008/04289d45-e8c3-4055-9b43-bceb18b0b39d)
 
 
 ## Future Development:
