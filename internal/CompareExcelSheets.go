@@ -86,14 +86,14 @@ func compareData(refData, newData []InterfaceData) int {
 	// Map reference data for comparison
 	refMap := make(map[string]InterfaceData)
 	for _, d := range refData {
-		key := fmt.Sprintf("%s-%s", d.Node, d.Interface)
+		key := fmt.Sprintf("%s-%s-%s", d.Node, d.Slot, d.Port)
 		refMap[key] = d
 	}
 
 	// Compare new data against reference data and write differences
 	diffCount := 0
 	for _, d := range newData {
-		key := fmt.Sprintf("%s-%s", d.Node, d.Interface)
+		key := fmt.Sprintf("%s-%s-%s", d.Node, d.Slot, d.Port)
 		ref, exists := refMap[key]
 		file, fileExists := nodeFiles[d.Node]
 
