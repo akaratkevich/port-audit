@@ -44,7 +44,12 @@ func UpdateExcel(data []InterfaceData, filename string) error {
 		row.AddCell().Value = ci.VLAN
 		row.AddCell().Value = ci.Duplex
 		row.AddCell().Value = ci.Speed
-		row.AddCell().Value = ci.Description
+		// Check if Description is blank and set a default value if it is
+		description := ci.Description
+		if description == "" {
+			description = "Unallocated" // Set default value "Unallocated" as per the Baseline
+		}
+		row.AddCell().Value = description
 	}
 
 	// Save the updated Excel file.

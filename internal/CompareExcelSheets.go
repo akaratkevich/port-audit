@@ -133,24 +133,24 @@ func compareData(refData, newData []InterfaceData) int {
 // Check if two InterfaceData objects are identical and return the fields that are different.
 func compareFields(a, b InterfaceData) []string {
 	var diffs []string
-	if a.Type != b.Type {
-		diffs = append(diffs, fmt.Sprintf("Type: Reference(%s) New(%s)", a.Type, b.Type))
-	}
+	//if a.Type != b.Type {
+	//	diffs = append(diffs, fmt.Sprintf("Type: Reference(%s) New(%s)", a.Type, b.Type))
+	//}
 	if a.Description != b.Description {
 		diffs = append(diffs, fmt.Sprintf("Description: Reference(%s) New(%s)", a.Description, b.Description))
 	}
 	if a.Status != b.Status {
 		diffs = append(diffs, fmt.Sprintf("Status: Reference(%s) New(%s)", a.Status, b.Status))
 	}
-	if a.Speed != b.Speed {
-		diffs = append(diffs, fmt.Sprintf("Speed: Reference(%s) New(%s)", a.Speed, b.Speed))
-	}
-	if a.Duplex != b.Duplex {
-		diffs = append(diffs, fmt.Sprintf("Duplex: Reference(%s) New(%s)", a.Duplex, b.Duplex))
-	}
-	if a.VLAN != b.VLAN {
-		diffs = append(diffs, fmt.Sprintf("VLAN: Reference(%s) New(%s)", a.VLAN, b.VLAN))
-	}
+	//if a.Speed != b.Speed {
+	//	diffs = append(diffs, fmt.Sprintf("Speed: Reference(%s) New(%s)", a.Speed, b.Speed))
+	//}
+	//if a.Duplex != b.Duplex {
+	//	diffs = append(diffs, fmt.Sprintf("Duplex: Reference(%s) New(%s)", a.Duplex, b.Duplex))
+	//}
+	//if a.VLAN != b.VLAN {
+	//	diffs = append(diffs, fmt.Sprintf("VLAN: Reference(%s) New(%s)", a.VLAN, b.VLAN))
+	//}
 	if a.Port != b.Port {
 		diffs = append(diffs, fmt.Sprintf("Port: Reference(%s) New(%s)", a.Port, b.Port))
 	}
