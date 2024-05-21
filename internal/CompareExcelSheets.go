@@ -73,7 +73,6 @@ func compareData(refData, newData []InterfaceData) int {
 			if err != nil {
 				log.Fatalf("Failed to create report file for node %s: %v", d.Node, err)
 			}
-			defer file.Close()
 			nodeFiles[d.Node] = file
 			statusSummary[d.Node] = make(map[string]int) // Initialise status count map for this node
 
@@ -100,13 +99,13 @@ func compareData(refData, newData []InterfaceData) int {
 		if exists && fileExists {
 			if !dataEquals(ref, d) {
 				diffCount++
-				diff := fmt.Sprintf("Difference found for Node: %s, Interface: %s\n", d.Node, d.Interface)
+				diff := fmt.Sprintf("Difference found for Node: %s, Slot: %s, Port: %s\n", d.Node, d.Slot, d.Port)
 				diff += fmt.Sprintf("Reference: %+v\nNew Data: %+v\n", ref, d)
 				diff += "-----------------------------------\n"
 				_, _ = file.WriteString(diff)
 			}
 		} else if !exists && fileExists {
-			newEntry := fmt.Sprintf("New entry detected for Node: %s, Interface: %s\n", d.Node, d.Interface)
+			newEntry := fmt.Sprintf("New entry detected for Node: %s, Slot: %s, Port: %s\n", d.Node, d.Slot, d.Port)
 			newEntry += "-----------------------------------\n"
 			_, _ = file.WriteString(newEntry)
 		}
