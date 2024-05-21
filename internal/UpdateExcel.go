@@ -16,7 +16,7 @@ func UpdateExcel(data []InterfaceData, filename string) error {
 	}
 
 	// Format the current date and time as 'DDMMYY_HHMM' and create a sheet name with it.
-	dateTime := time.Now().Format("020106_1504") // Format: DDMMYY_HHMM
+	dateTime := time.Now().Format("02012006") // Format: DDMMYYYY
 	sheetName := fmt.Sprintf("Audit %s", dateTime)
 	sheet, err := file.AddSheet(sheetName)
 	if err != nil {

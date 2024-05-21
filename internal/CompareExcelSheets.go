@@ -32,7 +32,7 @@ func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 		return fmt.Errorf("Failed to open Excel file: %v", err)
 	}
 
-	dateTime := time.Now().Format("020106_1504") // Generates a timestamp for naming the new audit sheet.
+	dateTime := time.Now().Format("02012006") // Generates a timestamp for naming the new audit sheet.
 	refSheet := file.Sheet["Baseline"]
 	newSheetName := fmt.Sprintf("Audit %s", dateTime)
 	newSheet := file.Sheet[newSheetName]
