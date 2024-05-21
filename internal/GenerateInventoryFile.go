@@ -45,20 +45,19 @@ func GenerateInventory(filePath string, logger *pterm.Logger) error {
 // Returns the string at the index from parts slice, or a default value if the index is out of bounds.
 func getPart(parts []string, index int) string {
 	if index < len(parts) && parts[index] != "" {
-		// Add quotes around the host field
-		if index == 0 {
-			return fmt.Sprintf("\"%s\"", parts[index])
-		}
 		return parts[index]
 	}
-	// Check if the missing part and provide a default value
-	if index == 1 {
+	// Provide default values
+	switch index {
+	case 1:
 		return "22" // Default port
-	}
-	if index == 3 {
+	case 2:
+		return "ios" // Default platform
+	case 3:
 		return "ssh" // Default transport
+	default:
+		return "" // Empty string for out of bounds
 	}
-	return ""
 }
 
 // Marshals a slice of Device structs into a YAML format and write it to a file.
