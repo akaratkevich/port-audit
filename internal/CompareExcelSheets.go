@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// FilterData filters the reference data to include only relevant columns and devices.
+// Filter the reference data to include only relevant columns and devices.
 func FilterData(refData, newData []InterfaceData) []InterfaceData {
 	newNodes := make(map[string]bool)
 	for _, d := range newData {
@@ -25,14 +25,14 @@ func FilterData(refData, newData []InterfaceData) []InterfaceData {
 	return filteredData
 }
 
-// CompareExcelSheets compares two Excel sheets for differences.
+// Compare two Excel sheets for differences.
 func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 	file, err := xlsx.OpenFile(filename)
 	if err != nil {
 		return fmt.Errorf("Failed to open Excel file: %v", err)
 	}
 
-	dateTime := time.Now().Format("02012006") // Generates a timestamp for naming the new audit sheet.
+	dateTime := time.Now().Format("02012006") // Generate a timestamp for naming the new audit sheet.
 	refSheet := file.Sheet["Baseline"]
 	newSheetName := fmt.Sprintf("Audit %s", dateTime)
 	newSheet := file.Sheet[newSheetName]
@@ -59,7 +59,7 @@ func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 	return nil
 }
 
-// CompareData evaluates differences between two slices of InterfaceData (reference data and new data).
+// Evaluate differences between two slices of InterfaceData (reference data and new data).
 func compareData(refData, newData []InterfaceData) int {
 	nodeFiles := make(map[string]*os.File)
 	statusSummary := make(map[string]map[string]int)        // A nested map to track status summaries per node.
@@ -97,10 +97,13 @@ func compareData(refData, newData []InterfaceData) int {
 		file, fileExists := nodeFiles[d.Node]
 
 		if exists && fileExists {
-			if !dataEquals(ref, d) {
+			diffs := compareFields(ref, d)
+			if len(diffs) > 0 {
 				diffCount++
 				diff := fmt.Sprintf("Difference found for Node: %s, Slot: %s, Port: %s\n", d.Node, d.Slot, d.Port)
-				diff += fmt.Sprintf("Reference: %+v\nNew Data: %+v\n", ref, d)
+				for _, diffDetail := range diffs {
+					diff += diffDetail + "\n"
+				}
 				diff += "-----------------------------------\n"
 				_, _ = file.WriteString(diff)
 			}
@@ -127,8 +130,32 @@ func compareData(refData, newData []InterfaceData) int {
 	return diffCount
 }
 
-// Check if two InterfaceData objects are identical.
-func dataEquals(a, b InterfaceData) bool {
-	return a.Type == b.Type && a.Description == b.Description && a.Status == b.Status &&
-		a.Speed == b.Speed && a.Duplex == b.Duplex && a.VLAN == b.VLAN && a.Port == b.Port && a.Slot == b.Slot
+// Check if two InterfaceData objects are identical and return the fields that are different.
+func compareFields(a, b InterfaceData) []string {
+	var diffs []string
+	if a.Type != b.Type {
+		diffs = append(diffs, fmt.Sprintf("Type: Reference(%s) New(%s)", a.Type, b.Type))
+	}
+	if a.Description != b.Description {
+		diffs = append(diffs, fmt.Sprintf("Description: Reference(%s) New(%s)", a.Description, b.Description))
+	}
+	if a.Status != b.Status {
+		diffs = append(diffs, fmt.Sprintf("Status: Reference(%s) New(%s)", a.Status, b.Status))
+	}
+	if a.Speed != b.Speed {
+		diffs = append(diffs, fmt.Sprintf("Speed: Reference(%s) New(%s)", a.Speed, b.Speed))
+	}
+	if a.Duplex != b.Duplex {
+		diffs = append(diffs, fmt.Sprintf("Duplex: Reference(%s) New(%s)", a.Duplex, b.Duplex))
+	}
+	if a.VLAN != b.VLAN {
+		diffs = append(diffs, fmt.Sprintf("VLAN: Reference(%s) New(%s)", a.VLAN, b.VLAN))
+	}
+	if a.Port != b.Port {
+		diffs = append(diffs, fmt.Sprintf("Port: Reference(%s) New(%s)", a.Port, b.Port))
+	}
+	if a.Slot != b.Slot {
+		diffs = append(diffs, fmt.Sprintf("Slot: Reference(%s) New(%s)", a.Slot, b.Slot))
+	}
+	return diffs
 }
