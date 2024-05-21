@@ -49,7 +49,7 @@ func main() {
 	commands := map[string]string{
 		"NXOS/IOS - show interface status":   "show interface status",
 		"IOS - show interface description":   "show interface description",
-		"IOSXR - show interface description": "show interface description",
+		"IOSXR - show interface description": "show int description",
 	}
 
 	// Interactive menu to select a command

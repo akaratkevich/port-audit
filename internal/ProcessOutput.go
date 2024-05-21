@@ -25,17 +25,17 @@ Parameters:
 */
 
 // ProcessOutput determines the platform of the device and parses the output accordingly.
-func ProcessOutput(output string, device Device, dataChan chan<- InterfaceData) {
+func ProcessOutput(output string, command string, device Device, dataChan chan<- InterfaceData) {
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		line := scanner.Text()
 		var data *InterfaceData
-		switch device.Platform {
-		case "nxos":
+		switch command {
+		case "show interface status":
 			data = parseInterfaceStatus(line, RegexInterfaceStatus, device) // Show interface status
-		case "ios":
+		case "show interface description":
 			data = parseInterfaceDescription(line, RegexInterfaceDescription, device) // Show interface description
-		case "iosxr":
+		case "show int description":
 			data = parseInterfaceDescriptionIOSXR(line, RegexInterfaceDescriptionIOSXR, device)
 		}
 		if data != nil {

@@ -44,7 +44,7 @@ func ConnectAndExecute(device Device, username, password string, dataChan chan<-
 	}
 	log.Printf("Command executed successfully on %s, processing output...", device.Host)
 
-	ProcessOutput(string(output), device, dataChan)
+	ProcessOutput(string(output), command, device, dataChan)
 	log.Printf("Output processed for %s", device.Host)
 	return nil
 }
