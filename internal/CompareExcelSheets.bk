@@ -9,23 +9,18 @@ import (
 	"time"
 )
 
-// FilterData filters the reference data to include only relevant columns and devices.
-func FilterData(refData, newData []InterfaceData) []InterfaceData {
-	newNodes := make(map[string]bool)
-	for _, d := range newData {
-		newNodes[d.Node] = true
-	}
+/*
+Load two Excel sheets for comparison: a baseline and a newly generated sheet named with a current timestamp.
 
-	var filteredData []InterfaceData
-	for _, d := range refData {
-		if newNodes[d.Node] {
-			filteredData = append(filteredData, d)
-		}
-	}
-	return filteredData
-}
+It reads data from both sheets, compares them, and logs the number of differences found.
 
-// CompareExcelSheets compares two Excel sheets for differences.
+Parameters:
+  filename string - the file path of the Excel workbook to open.
+
+Returns:
+  error - returns an error if any step of the process fails, such as opening the file, reading data, or if sheets are missing.
+*/
+
 func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 	file, err := xlsx.OpenFile(filename)
 	if err != nil {
@@ -51,15 +46,23 @@ func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 		return fmt.Errorf("Failed to read new sheet data: %v", err)
 	}
 
-	filteredRefData := FilterData(refData, newData) // Filter the reference data
-
-	diffCount := compareData(filteredRefData, newData) // Compare data from the two sheets
+	diffCount := compareData(refData, newData) // Compare data from the two sheets
 	log.Printf("Audit completed: %d differences found", diffCount)
 	logger.Trace("Completed data comparison.", logger.Args("Differences found", diffCount))
 	return nil
 }
 
-// CompareData evaluates differences between two slices of InterfaceData (reference data and new data).
+/*
+Evaluate differences between two slices of InterfaceData (reference data and new data).
+Generate reports for each node detailing any changes or discrepancies found between the data sets.
+
+Parameters:
+  refData, newData []InterfaceData - slices containing the data from the reference and new sheets, respectively.
+
+Returns:
+  int - the number of differences found between the reference and new data.
+*/
+
 func compareData(refData, newData []InterfaceData) int {
 	nodeFiles := make(map[string]*os.File)
 	statusSummary := make(map[string]map[string]int)        // A nested map to track status summaries per node.

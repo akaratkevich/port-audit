@@ -29,7 +29,7 @@ func CreateExcel(data []InterfaceData, filename string) error {
 	}
 
 	// Column headers for the data to be inserted. These headers correspond to the fields within the InterfaceData struct.
-	headers := []string{"Switch Name", "Interface", "SLOT", "PORT", "Description", "Status", "VLAN", "Duplex", "Speed", "Type"}
+	headers := []string{"Switch Name", "Interface", "SLOT", "PORT", "TYPE", "Port Status", "VLAN", "Duplex", "SPEED", "Port Description"}
 	headerRow := sheet.AddRow()
 	for _, header := range headers {
 		// For each header, add a new cell to the row and set its value.
@@ -44,12 +44,12 @@ func CreateExcel(data []InterfaceData, filename string) error {
 		row.AddCell().Value = ci.Interface
 		row.AddCell().Value = ci.Slot // Add Slot to Excel
 		row.AddCell().Value = ci.Port // Add Port to Excel
-		row.AddCell().Value = ci.Description
+		row.AddCell().Value = ci.Type
 		row.AddCell().Value = ci.Status
 		row.AddCell().Value = ci.VLAN
 		row.AddCell().Value = ci.Duplex
 		row.AddCell().Value = ci.Speed
-		row.AddCell().Value = ci.Type
+		row.AddCell().Value = ci.Description
 	}
 
 	// Save the Excel file

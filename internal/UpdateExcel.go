@@ -25,7 +25,7 @@ func UpdateExcel(data []InterfaceData, filename string) error {
 	}
 
 	// Column headers based on the InterfaceData struct fields.
-	headers := []string{"Switch Name", "Interface", "SLOT", "PORT", "Description", "Status", "VLAN", "Duplex", "Speed", "Type"}
+	headers := []string{"Switch Name", "Interface", "SLOT", "PORT", "TYPE", "Port Status", "VLAN", "Duplex", "SPEED", "Port Description"}
 	headerRow := sheet.AddRow()
 	for _, header := range headers {
 		cell := headerRow.AddCell()
@@ -39,12 +39,12 @@ func UpdateExcel(data []InterfaceData, filename string) error {
 		row.AddCell().Value = ci.Interface
 		row.AddCell().Value = ci.Slot // Add Slot to Excel
 		row.AddCell().Value = ci.Port // Add Port to Excel
-		row.AddCell().Value = ci.Description
+		row.AddCell().Value = ci.Type
 		row.AddCell().Value = ci.Status
 		row.AddCell().Value = ci.VLAN
 		row.AddCell().Value = ci.Duplex
 		row.AddCell().Value = ci.Speed
-		row.AddCell().Value = ci.Type
+		row.AddCell().Value = ci.Description
 	}
 
 	// Save the updated Excel file.
