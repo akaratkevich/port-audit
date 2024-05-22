@@ -2,13 +2,14 @@ package internal
 
 import (
 	"fmt"
+	"github.com/pterm/pterm"
 	"github.com/tealeg/xlsx"
 	"log"
 	"time"
 )
 
 // Open an existing Excel file, add a new sheet with current date and time, and populate it with data.
-func UpdateExcel(data []InterfaceData, filename string) error {
+func UpdateExcel(data []InterfaceData, filename string, logger *pterm.Logger) error {
 	// Open the existing Excel file.
 	file, err := xlsx.OpenFile(filename)
 	if err != nil {
@@ -20,6 +21,7 @@ func UpdateExcel(data []InterfaceData, filename string) error {
 	sheetName := fmt.Sprintf("Audit %s", dateTime)
 	sheet, err := file.AddSheet(sheetName)
 	if err != nil {
+		logger.Fatal("Failed to add sheet", logger.Args("Reason", err))
 		log.Fatalf("Failed to add sheet: %v", err) // Log and return the error if a new sheet cannot be added.
 		return err
 	}

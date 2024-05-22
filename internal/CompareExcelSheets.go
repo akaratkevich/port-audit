@@ -32,6 +32,7 @@ func FilterData(refData, newData []InterfaceData, logger *pterm.Logger) []Interf
 func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 	file, err := xlsx.OpenFile(filename)
 	if err != nil {
+		logger.Warn("Failed to open Excel file", logger.Args("Reason", err))
 		return fmt.Errorf("Failed to open Excel file: %v", err)
 	}
 
@@ -41,16 +42,20 @@ func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 	newSheet := file.Sheet[newSheetName]
 
 	if refSheet == nil || newSheet == nil {
+		logger.Warn("Missing Excel sheets for comparison (reference or new sheet not found)")
 		return fmt.Errorf("Missing Excel sheets for comparison (reference or new sheet not found)")
+
 	}
 
 	refData, err := ReadExcelData(refSheet) // Read data from the reference sheet.
 	if err != nil {
+		logger.Warn("Failed to read reference sheet data", logger.Args("Reason", err))
 		return fmt.Errorf("Failed to read reference sheet data: %v", err)
 	}
 
 	newData, err := ReadExcelData(newSheet) // Read data from the newly created sheet
 	if err != nil {
+		logger.Warn("Failed to read new sheet data", logger.Args("Reason", err))
 		return fmt.Errorf("Failed to read new sheet data: %v", err)
 	}
 

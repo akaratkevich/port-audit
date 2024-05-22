@@ -23,14 +23,17 @@ This function does not return any value but will halt execution and log a fatal 
 func ExcelOperations(allData []InterfaceData, baseFile bool, logger *pterm.Logger) {
 	var err error
 	if baseFile {
-		err = CreateExcel(allData, filename)
+		err = CreateExcel(allData, filename, logger)
+		logger.Info("Creating 'Baseline' Excel file", logger.Args("File name", filename))
 	} else {
-		err = UpdateExcel(allData, filename)
+		err = UpdateExcel(allData, filename, logger)
+		//logger.Info("Working on existing Excel file", logger.Args("File", filename))
 	}
 	if err != nil {
 		log.Fatalf("Failed to manage Excel file: %v", err)
 	}
 	log.Printf("Excel operations completed successfully on '%s'.", filename)
+	logger.Trace("Excel operations completed successfully.")
 
 	// Compare data in Excel sheets.
 	if err = CompareExcelSheets(filename, logger); err != nil {

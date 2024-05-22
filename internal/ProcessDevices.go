@@ -1,6 +1,9 @@
 package internal
 
-import "log"
+import (
+	"log"
+	"sync"
+)
 
 /*
 Manage the processing of a single network device within a goroutine.
@@ -25,9 +28,9 @@ Usage:
   - The worker pool is responsible for managing the lifecycle of goroutines, including the synchronization of their completion.
 */
 
-func ProcessDevice(device Device, dataChan chan<- InterfaceData, username, password string, selectedCommand string) {
+func ProcessDevice(device Device, dataChan chan<- InterfaceData, username, password string, selectedCommand string, successCounter *int, failureCounter *int, mu *sync.Mutex) {
 	log.Printf("Starting processing for device: %s", device.Host)
-	if err := ConnectAndExecute(device, username, password, dataChan, selectedCommand); err != nil {
+	if err := ConnectAndExecute(device, username, password, dataChan, selectedCommand, successCounter, failureCounter, mu); err != nil {
 		log.Printf("Failed to connect or execute on device %s: %v", device.Host, err)
 	}
 	log.Printf("Completed processing for device: %s", device.Host)

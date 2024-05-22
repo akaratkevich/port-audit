@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/pterm/pterm"
 	"github.com/tealeg/xlsx"
 	"log"
 )
@@ -17,7 +18,7 @@ Returns:
   error - Returns an error if any step of the Excel file creation or saving process fails.
 */
 
-func CreateExcel(data []InterfaceData, filename string) error {
+func CreateExcel(data []InterfaceData, filename string, logger *pterm.Logger) error {
 	file := xlsx.NewFile()
 
 	sheetName := fmt.Sprintf("Baseline")

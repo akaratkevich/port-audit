@@ -76,6 +76,11 @@ func main() {
 	dataChan := make(chan internal.InterfaceData)
 	var wg sync.WaitGroup
 
+	// Counters for success and failure
+	var successCounter int
+	var failureCounter int
+	var mu sync.Mutex
+
 	// Set the number of workers
 	numWorkers := 10
 	workQueue := make(chan internal.Device, len(inventory.Devices))
@@ -87,7 +92,7 @@ func main() {
 		go func() {
 			defer wg.Done()
 			for device := range workQueue {
-				internal.ProcessDevice(device, dataChan, *username, *password, selectedCommand)
+				internal.ProcessDevice(device, dataChan, *username, *password, selectedCommand, &successCounter, &failureCounter, &mu)
 			}
 		}()
 	}
@@ -112,10 +117,18 @@ func main() {
 	wg.Wait()       // Wait for all workers to finish processing
 	close(dataChan) // Safely close the data channel
 
-	logger.Trace("Device processing has finished, and data channels are closed. Data collected.", logger.Args("Total interfaces processed", len(allData))) // Log to the screen
-	logger.Warn("Check the application log for details on connection issues:", logger.Args("Log File", "port-audit-application.log"))                      // Log to the screen
-
-	log.Printf("All processing goroutines completed: data channels closed successfully, and data collected for %d interfaces.", len(allData)) // Log to filePath
+	// Check if at least some devices were processed
+	if failureCounter > 0 {
+		logger.Warn("Some devices encountered connection issues. Please check the application log for detailed error messages.", logger.Args("Total failed connections", failureCounter))
+	}
+	// Check if data collection was successful
+	if len(allData) <= 0 {
+		log.Printf("Data collection failed: No interface data collected.")
+		logger.Error("Data collection failed: No interface data collected.")
+	} else {
+		log.Printf("All processing goroutines completed: Data channels closed successfully, and data collected for %d interfaces.", len(allData))
+		logger.Info("Data collection successful.", logger.Args("Total interfaces collected", len(allData)))
+	}
 
 	// 7. Perform Excel operations based on the command line option.
 	logger.Trace("Initiating Excel and data comparison operations, and preparing final reports....") // Log to the screen
@@ -145,7 +158,9 @@ func main() {
 	totalNodes := len(inventory.Devices)
 	elapsedTime := time.Since(startTime)
 	fmt.Println("\n----------------------------------------------------------------")
-	pterm.FgLightYellow.Printf("Execution completed for %d devices\n", totalNodes)
+	pterm.FgLightYellow.Printf("Total %d devices\n", totalNodes)
+	pterm.FgLightYellow.Printf("Successful connections: %d\n", successCounter)
+	pterm.FgLightYellow.Printf("Failed connections: %d\n", failureCounter)
 	pterm.FgLightYellow.Printf("Execution Time: %s\n", elapsedTime)
 	fmt.Println("----------------------------------------------------------------")
 }

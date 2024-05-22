@@ -3,6 +3,7 @@ package internal
 import (
 	"log"
 	"strconv"
+	"sync"
 )
 
 /*
@@ -19,7 +20,7 @@ Returns:
   error - Returns an error if any step in the process fails
 */
 
-func ConnectAndExecute(device Device, username, password string, dataChan chan<- InterfaceData, selectedCommand string) error {
+func ConnectAndExecute(device Device, username, password string, dataChan chan<- InterfaceData, selectedCommand string, successCounter *int, failureCounter *int, mu *sync.Mutex) error {
 	port, err := strconv.Atoi(device.Port)
 	if err != nil {
 		log.Printf("Error: Invalid port number for host %s: %v", device.Host, err)
@@ -29,10 +30,16 @@ func ConnectAndExecute(device Device, username, password string, dataChan chan<-
 	session, err := InitialiseConnection(device.Host, port, username, password)
 	if err != nil {
 		log.Printf("Error: SSH connection failed for %s; error: %v", device.Host, err)
+		mu.Lock()
+		*failureCounter++
+		mu.Unlock()
 		return err
 	}
 	defer session.Close()
 	log.Printf("SSH connection established for %s", device.Host)
+	mu.Lock()
+	*successCounter++
+	mu.Unlock()
 
 	command := selectedCommand
 	log.Printf("Executing command on %s: %s", device.Host, command)
