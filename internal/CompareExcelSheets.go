@@ -53,7 +53,7 @@ func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 		return fmt.Errorf("Failed to read new sheet data: %v", err)
 	}
 
-	filteredRefData := FilterData(refData, newData) // Filter the reference data
+	filteredRefData := FilterData(refData, newData, logger) // Filter the reference data
 
 	diffCount := compareData(filteredRefData, newData) // Compare data from the two sheets
 	log.Printf("Audit completed: %d differences found", diffCount)
