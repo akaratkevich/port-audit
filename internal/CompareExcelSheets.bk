@@ -6,9 +6,27 @@ import (
 	"github.com/tealeg/xlsx"
 	"log"
 	"os"
-	"sync"
 	"time"
 )
+
+// Filter the reference data to include only relevant columns and devices.
+func FilterData(refData, newData []InterfaceData, logger *pterm.Logger) []InterfaceData {
+	newNodes := make(map[string]bool)
+	for _, d := range newData {
+		newNodes[d.Node] = true
+	}
+
+	var filteredData []InterfaceData
+	for _, d := range refData {
+		if newNodes[d.Node] {
+			filteredData = append(filteredData, d)
+		}
+	}
+	log.Printf("Filtered data", filteredData) // send to the log file
+	//logger.Trace("FilterData", logger.Args(filteredData))
+	return filteredData
+
+}
 
 // CompareExcelSheets compares two Excel sheets for differences.
 func CompareExcelSheets(filename string, logger *pterm.Logger) error {
@@ -26,40 +44,22 @@ func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 		return fmt.Errorf("Missing Excel sheets for comparison (reference or new sheet not found)")
 	}
 
-	headerMap := getHeaderMap(refSheet)
+	refData, err := ReadExcelData(refSheet) // Read data from the reference sheet.
+	if err != nil {
+		return fmt.Errorf("Failed to read reference sheet data: %v", err)
+	}
 
-	var wg sync.WaitGroup
-	refCh := make(chan []InterfaceData)
-	newCh := make(chan []InterfaceData)
+	newData, err := ReadExcelData(newSheet) // Read data from the newly created sheet
+	if err != nil {
+		return fmt.Errorf("Failed to read new sheet data: %v", err)
+	}
 
-	wg.Add(2)
-	go ReadExcelData(refSheet, headerMap, refCh, &wg)
-	go ReadExcelData(newSheet, headerMap, newCh, &wg)
-
-	go func() {
-		wg.Wait()
-		close(refCh)
-		close(newCh)
-	}()
-
-	refData := <-refCh
-	newData := <-newCh
-
-	filteredRefData := FilterData(refData, newData) // Filter the reference data
+	filteredRefData := FilterData(refData, newData, logger) // Filter the reference data
 
 	diffCount := compareData(filteredRefData, newData) // Compare data from the two sheets
 	log.Printf("Audit completed: %d differences found", diffCount)
 	logger.Trace("Completed data comparison.", logger.Args("Differences found", diffCount))
 	return nil
-}
-
-// GetHeaderMap reads the headers from the first row of the sheet and returns a map of header names to their indices.
-func getHeaderMap(sheet *xlsx.Sheet) map[string]int {
-	headerMap := make(map[string]int)
-	for i, cell := range sheet.Rows[0].Cells {
-		headerMap[cell.String()] = i
-	}
-	return headerMap
 }
 
 // CompareData evaluates differences between two slices of InterfaceData (reference data and new data).
@@ -92,45 +92,29 @@ func compareData(refData, newData []InterfaceData) int {
 		refMap[key] = d
 	}
 
-	var wg sync.WaitGroup
-	diffCountCh := make(chan int)
-
 	// Compare new data against reference data and write differences
-	for _, d := range newData {
-		wg.Add(1)
-		go func(d InterfaceData) {
-			defer wg.Done()
-			key := fmt.Sprintf("%s-%s-%s", d.Node, d.Slot, d.Port)
-			ref, exists := refMap[key]
-			file, fileExists := nodeFiles[d.Node]
-
-			if exists && fileExists {
-				diffs := compareFields(ref, d)
-				if len(diffs) > 0 {
-					diff := fmt.Sprintf("Difference found for Node: %s, Slot: %s, Port: %s\n", d.Node, d.Slot, d.Port)
-					for _, diffDetail := range diffs {
-						diff += diffDetail + "\n"
-					}
-					diff += "-----------------------------------\n"
-					_, _ = file.WriteString(diff)
-					diffCountCh <- 1
-				}
-			} else if !exists && fileExists {
-				newEntry := fmt.Sprintf("New entry detected for Node: %s, Slot: %s, Port: %s\n", d.Node, d.Slot, d.Port)
-				newEntry += "-----------------------------------\n"
-				_, _ = file.WriteString(newEntry)
-			}
-		}(d)
-	}
-
-	go func() {
-		wg.Wait()
-		close(diffCountCh)
-	}()
-
 	diffCount := 0
-	for count := range diffCountCh {
-		diffCount += count
+	for _, d := range newData {
+		key := fmt.Sprintf("%s-%s-%s", d.Node, d.Slot, d.Port)
+		ref, exists := refMap[key]
+		file, fileExists := nodeFiles[d.Node]
+
+		if exists && fileExists {
+			diffs := compareFields(ref, d)
+			if len(diffs) > 0 {
+				diffCount++
+				diff := fmt.Sprintf("Difference found for Node: %s, Slot: %s, Port: %s\n", d.Node, d.Slot, d.Port)
+				for _, diffDetail := range diffs {
+					diff += diffDetail + "\n"
+				}
+				diff += "-----------------------------------\n"
+				_, _ = file.WriteString(diff)
+			}
+		} else if !exists && fileExists {
+			newEntry := fmt.Sprintf("New entry detected for Node: %s, Slot: %s, Port: %s\n", d.Node, d.Slot, d.Port)
+			newEntry += "-----------------------------------\n"
+			_, _ = file.WriteString(newEntry)
+		}
 	}
 
 	// Write the status summary at the top of each report file and close files
@@ -152,45 +136,29 @@ func compareData(refData, newData []InterfaceData) int {
 // Check if two InterfaceData objects are identical and return the fields that are different.
 func compareFields(a, b InterfaceData) []string {
 	var diffs []string
-	if a.Type != b.Type {
-		diffs = append(diffs, fmt.Sprintf("Type: Reference(%s) New(%s)", a.Type, b.Type))
-	}
+	//if a.Type != b.Type {
+	//	diffs = append(diffs, fmt.Sprintf("Type: Reference(%s) New(%s)", a.Type, b.Type))
+	//}
 	if a.Description != b.Description {
 		diffs = append(diffs, fmt.Sprintf("Description: Reference(%s) New(%s)", a.Description, b.Description))
 	}
 	if a.Status != b.Status {
 		diffs = append(diffs, fmt.Sprintf("Status: Reference(%s) New(%s)", a.Status, b.Status))
 	}
-	if a.Speed != b.Speed {
-		diffs = append(diffs, fmt.Sprintf("Speed: Reference(%s) New(%s)", a.Speed, b.Speed))
-	}
-	if a.Duplex != b.Duplex {
-		diffs = append(diffs, fmt.Sprintf("Duplex: Reference(%s) New(%s)", a.Duplex, b.Duplex))
-	}
-	if a.VLAN != b.VLAN {
-		diffs = append(diffs, fmt.Sprintf("VLAN: Reference(%s) New(%s)", a.VLAN, b.VLAN))
-	}
-	if a.Port != b.Port {
-		diffs = append(diffs, fmt.Sprintf("Port: Reference(%s) New(%s)", a.Port, b.Port))
-	}
-	if a.Slot != b.Slot {
-		diffs = append(diffs, fmt.Sprintf("Slot: Reference(%s) New(%s)", a.Slot, b.Slot))
-	}
+	//if a.Speed != b.Speed {
+	//	diffs = append(diffs, fmt.Sprintf("Speed: Reference(%s) New(%s)", a.Speed, b.Speed))
+	//}
+	//if a.Duplex != b.Duplex {
+	//	diffs = append(diffs, fmt.Sprintf("Duplex: Reference(%s) New(%s)", a.Duplex, b.Duplex))
+	//}
+	//if a.VLAN != b.VLAN {
+	//	diffs = append(diffs, fmt.Sprintf("VLAN: Reference(%s) New(%s)", a.VLAN, b.VLAN))
+	//}
+	//if a.Port != b.Port {
+	//	diffs = append(diffs, fmt.Sprintf("Port: Reference(%s) New(%s)", a.Port, b.Port))
+	//}
+	//if a.Slot != b.Slot {
+	//	diffs = append(diffs, fmt.Sprintf("Slot: Reference(%s) New(%s)", a.Slot, b.Slot))
+	//}
 	return diffs
-}
-
-// FilterData filters the reference data to include only relevant columns and devices.
-func FilterData(refData, newData []InterfaceData) []InterfaceData {
-	newNodes := make(map[string]bool)
-	for _, d := range newData {
-		newNodes[d.Node] = true
-	}
-
-	var filteredData []InterfaceData
-	for _, d := range refData {
-		if newNodes[d.Node] {
-			filteredData = append(filteredData, d)
-		}
-	}
-	return filteredData
 }
