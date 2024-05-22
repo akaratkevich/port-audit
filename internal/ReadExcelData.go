@@ -38,8 +38,8 @@ func ReadExcelData(sheet *xlsx.Sheet) ([]InterfaceData, error) {
 
 	for _, row := range sheet.Rows[1:] { // Skip the header row
 		entry := InterfaceData{
-			Node: getCellValue(row, headerMap["Switch Name"]),
-			//Interface:   getCellValue(row, headerMap["Interface"]), not in the ref sheet
+			Node:        getCellValue(row, headerMap["Switch Name"]),
+			Interface:   getCellValue(row, headerMap["Interface"]),
 			Type:        getCellValue(row, headerMap["TYPE"]),
 			Description: getCellValue(row, headerMap["Port Description"]),
 			Status:      getCellValue(row, headerMap["Port Status"]),
