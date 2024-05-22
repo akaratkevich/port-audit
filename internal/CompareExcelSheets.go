@@ -22,7 +22,8 @@ func FilterData(refData, newData []InterfaceData, logger *pterm.Logger) []Interf
 			filteredData = append(filteredData, d)
 		}
 	}
-	logger.Trace("FilterData", logger.Args(filteredData))
+	log.Printf("Filtered data", filteredData) // send to the log file
+	//logger.Trace("FilterData", logger.Args(filteredData))
 	return filteredData
 
 }

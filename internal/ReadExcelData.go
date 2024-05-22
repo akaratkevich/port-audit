@@ -25,7 +25,7 @@ func ReadExcelData(sheet *xlsx.Sheet) ([]InterfaceData, error) {
 	}
 
 	// Required headers
-	requiredHeaders := []string{"Switch Name", "SLOT", "PORT", "TYPE", "Port Status", "VLAN", "Duplex", "SPEED", "Port Description"} //"Interface" is not in the ref sheet
+	requiredHeaders := []string{"Switch Name", "SLOT", "PORT", "Port Status", "Port Description"} //"Interface", "TYPE", "VLAN", "Duplex", "SPEED" not required at the minute
 
 	// Check if all required headers are present
 	for _, header := range requiredHeaders {
