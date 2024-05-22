@@ -1,6 +1,20 @@
 package internal
 
-import "github.com/tealeg/xlsx"
+import (
+	"fmt"
+	"github.com/tealeg/xlsx"
+)
+
+/*
+Extract interface data from an Excel sheet and convert it into a slice of InterfaceData structs.
+
+Parameters:
+  - sheet *xlsx.Sheet: The Excel sheet from which data will be read.
+
+Returns:
+  - []InterfaceData: A slice containing all the interface data extracted from the Excel sheet.
+  - error: Returns an error if any issues occur during the data extraction process.
+*/
 
 // ReadExcelData reads data from a given Excel sheet and returns a slice of InterfaceData.
 func ReadExcelData(sheet *xlsx.Sheet) ([]InterfaceData, error) {
@@ -12,32 +26,28 @@ func ReadExcelData(sheet *xlsx.Sheet) ([]InterfaceData, error) {
 		headerMap[cell.String()] = i
 	}
 
-	// Map of expected headers to struct fields
-	headerMapping := map[string]string{
-		"Switch Name":      "Node",
-		"Interface":        "Interface",
-		"SLOT":             "Slot",
-		"PORT":             "Port",
-		"TYPE":             "Type",
-		"Port Status":      "Status",
-		"VLAN":             "VLAN",
-		"Duplex":           "Duplex",
-		"SPEED":            "Speed",
-		"Port Description": "Description",
+	// Required headers
+	requiredHeaders := []string{"Switch Name", "TYPE", "Port Description", "Port Status", "SPEED", "Duplex", "VLAN", "PORT", "SLOT"} //"Interface" is not in the ref sheet
+
+	// Check if all required headers are present
+	for _, header := range requiredHeaders {
+		if _, ok := headerMap[header]; !ok {
+			return nil, fmt.Errorf("Missing required header: %s", header)
+		}
 	}
 
 	for _, row := range sheet.Rows[1:] { // Skip the header row
 		entry := InterfaceData{
-			Node:        getCellValue(row, headerMap, headerMapping["Switch Name"]),
-			Interface:   getCellValue(row, headerMap, headerMapping["Interface"]),
-			Slot:        getCellValue(row, headerMap, headerMapping["SLOT"]),
-			Port:        getCellValue(row, headerMap, headerMapping["PORT"]),
-			Type:        getCellValue(row, headerMap, headerMapping["TYPE"]),
-			Status:      getCellValue(row, headerMap, headerMapping["Port Status"]),
-			VLAN:        getCellValue(row, headerMap, headerMapping["VLAN"]),
-			Duplex:      getCellValue(row, headerMap, headerMapping["Duplex"]),
-			Speed:       getCellValue(row, headerMap, headerMapping["SPEED"]),
-			Description: getCellValue(row, headerMap, headerMapping["Port Description"]),
+			Node: getCellValue(row, headerMap["Switch Name"]),
+			//Interface:   getCellValue(row, headerMap["Interface"]), not in the ref sheet
+			Type:        getCellValue(row, headerMap["TYPE"]),
+			Description: getCellValue(row, headerMap["Port Description"]),
+			Status:      getCellValue(row, headerMap["Port Status"]),
+			Speed:       getCellValue(row, headerMap["SPEED"]),
+			Duplex:      getCellValue(row, headerMap["Duplex"]),
+			VLAN:        getCellValue(row, headerMap["VLAN"]),
+			Slot:        getCellValue(row, headerMap["SLOT"]),
+			Port:        getCellValue(row, headerMap["PORT"]),
 		}
 		data = append(data, entry)
 	}
@@ -45,9 +55,9 @@ func ReadExcelData(sheet *xlsx.Sheet) ([]InterfaceData, error) {
 }
 
 // Get the value of a cell by index with a fallback for missing cells.
-func getCellValue(row *xlsx.Row, headerMap map[string]int, header string) string {
-	if idx, ok := headerMap[header]; ok && idx < len(row.Cells) {
-		return row.Cells[idx].String()
+func getCellValue(row *xlsx.Row, index int) string {
+	if index < len(row.Cells) {
+		return row.Cells[index].String()
 	}
 	return ""
 }
