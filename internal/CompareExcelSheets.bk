@@ -9,25 +9,30 @@ import (
 	"time"
 )
 
-/*
-Load two Excel sheets for comparison: a baseline and a newly generated sheet named with a current timestamp.
+// Filter the reference data to include only relevant columns and devices.
+func FilterData(refData, newData []InterfaceData) []InterfaceData {
+	newNodes := make(map[string]bool)
+	for _, d := range newData {
+		newNodes[d.Node] = true
+	}
 
-It reads data from both sheets, compares them, and logs the number of differences found.
+	var filteredData []InterfaceData
+	for _, d := range refData {
+		if newNodes[d.Node] {
+			filteredData = append(filteredData, d)
+		}
+	}
+	return filteredData
+}
 
-Parameters:
-  filename string - the file path of the Excel workbook to open.
-
-Returns:
-  error - returns an error if any step of the process fails, such as opening the file, reading data, or if sheets are missing.
-*/
-
+// Compare two Excel sheets for differences.
 func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 	file, err := xlsx.OpenFile(filename)
 	if err != nil {
 		return fmt.Errorf("Failed to open Excel file: %v", err)
 	}
 
-	dateTime := time.Now().Format("020106_1504") // Generates a timestamp for naming the new audit sheet.
+	dateTime := time.Now().Format("02012006") // Generate a timestamp for naming the new audit sheet.
 	refSheet := file.Sheet["Baseline"]
 	newSheetName := fmt.Sprintf("Audit %s", dateTime)
 	newSheet := file.Sheet[newSheetName]
@@ -46,23 +51,15 @@ func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 		return fmt.Errorf("Failed to read new sheet data: %v", err)
 	}
 
-	diffCount := compareData(refData, newData) // Compare data from the two sheets
+	filteredRefData := FilterData(refData, newData) // Filter the reference data
+
+	diffCount := compareData(filteredRefData, newData) // Compare data from the two sheets
 	log.Printf("Audit completed: %d differences found", diffCount)
 	logger.Trace("Completed data comparison.", logger.Args("Differences found", diffCount))
 	return nil
 }
 
-/*
-Evaluate differences between two slices of InterfaceData (reference data and new data).
-Generate reports for each node detailing any changes or discrepancies found between the data sets.
-
-Parameters:
-  refData, newData []InterfaceData - slices containing the data from the reference and new sheets, respectively.
-
-Returns:
-  int - the number of differences found between the reference and new data.
-*/
-
+// Evaluate differences between two slices of InterfaceData (reference data and new data).
 func compareData(refData, newData []InterfaceData) int {
 	nodeFiles := make(map[string]*os.File)
 	statusSummary := make(map[string]map[string]int)        // A nested map to track status summaries per node.
@@ -76,7 +73,6 @@ func compareData(refData, newData []InterfaceData) int {
 			if err != nil {
 				log.Fatalf("Failed to create report file for node %s: %v", d.Node, err)
 			}
-			defer file.Close()
 			nodeFiles[d.Node] = file
 			statusSummary[d.Node] = make(map[string]int) // Initialise status count map for this node
 
@@ -89,27 +85,30 @@ func compareData(refData, newData []InterfaceData) int {
 	// Map reference data for comparison
 	refMap := make(map[string]InterfaceData)
 	for _, d := range refData {
-		key := fmt.Sprintf("%s-%s", d.Node, d.Interface)
+		key := fmt.Sprintf("%s-%s-%s", d.Node, d.Slot, d.Port)
 		refMap[key] = d
 	}
 
 	// Compare new data against reference data and write differences
 	diffCount := 0
 	for _, d := range newData {
-		key := fmt.Sprintf("%s-%s", d.Node, d.Interface)
+		key := fmt.Sprintf("%s-%s-%s", d.Node, d.Slot, d.Port)
 		ref, exists := refMap[key]
 		file, fileExists := nodeFiles[d.Node]
 
 		if exists && fileExists {
-			if !dataEquals(ref, d) {
+			diffs := compareFields(ref, d)
+			if len(diffs) > 0 {
 				diffCount++
-				diff := fmt.Sprintf("Difference found for Node: %s, Interface: %s\n", d.Node, d.Interface)
-				diff += fmt.Sprintf("Reference: %+v\nNew Data: %+v\n", ref, d)
+				diff := fmt.Sprintf("Difference found for Node: %s, Slot: %s, Port: %s\n", d.Node, d.Slot, d.Port)
+				for _, diffDetail := range diffs {
+					diff += diffDetail + "\n"
+				}
 				diff += "-----------------------------------\n"
 				_, _ = file.WriteString(diff)
 			}
 		} else if !exists && fileExists {
-			newEntry := fmt.Sprintf("New entry detected for Node: %s, Interface: %s\n", d.Node, d.Interface)
+			newEntry := fmt.Sprintf("New entry detected for Node: %s, Slot: %s, Port: %s\n", d.Node, d.Slot, d.Port)
 			newEntry += "-----------------------------------\n"
 			_, _ = file.WriteString(newEntry)
 		}
@@ -131,8 +130,32 @@ func compareData(refData, newData []InterfaceData) int {
 	return diffCount
 }
 
-// Check if two InterfaceData objects are identical.
-func dataEquals(a, b InterfaceData) bool {
-	return a.Type == b.Type && a.Description == b.Description && a.Status == b.Status &&
-		a.Speed == b.Speed && a.Duplex == b.Duplex && a.VLAN == b.VLAN && a.Port == b.Port && a.Slot == b.Slot
+// Check if two InterfaceData objects are identical and return the fields that are different.
+func compareFields(a, b InterfaceData) []string {
+	var diffs []string
+	//if a.Type != b.Type {
+	//	diffs = append(diffs, fmt.Sprintf("Type: Reference(%s) New(%s)", a.Type, b.Type))
+	//}
+	if a.Description != b.Description {
+		diffs = append(diffs, fmt.Sprintf("Description: Reference(%s) New(%s)", a.Description, b.Description))
+	}
+	if a.Status != b.Status {
+		diffs = append(diffs, fmt.Sprintf("Status: Reference(%s) New(%s)", a.Status, b.Status))
+	}
+	//if a.Speed != b.Speed {
+	//	diffs = append(diffs, fmt.Sprintf("Speed: Reference(%s) New(%s)", a.Speed, b.Speed))
+	//}
+	//if a.Duplex != b.Duplex {
+	//	diffs = append(diffs, fmt.Sprintf("Duplex: Reference(%s) New(%s)", a.Duplex, b.Duplex))
+	//}
+	//if a.VLAN != b.VLAN {
+	//	diffs = append(diffs, fmt.Sprintf("VLAN: Reference(%s) New(%s)", a.VLAN, b.VLAN))
+	//}
+	if a.Port != b.Port {
+		diffs = append(diffs, fmt.Sprintf("Port: Reference(%s) New(%s)", a.Port, b.Port))
+	}
+	if a.Slot != b.Slot {
+		diffs = append(diffs, fmt.Sprintf("Slot: Reference(%s) New(%s)", a.Slot, b.Slot))
+	}
+	return diffs
 }

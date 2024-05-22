@@ -25,14 +25,14 @@ func FilterData(refData, newData []InterfaceData) []InterfaceData {
 	return filteredData
 }
 
-// Compare two Excel sheets for differences.
+// CompareExcelSheets compares two Excel sheets for differences.
 func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 	file, err := xlsx.OpenFile(filename)
 	if err != nil {
 		return fmt.Errorf("Failed to open Excel file: %v", err)
 	}
 
-	dateTime := time.Now().Format("02012006") // Generate a timestamp for naming the new audit sheet.
+	dateTime := time.Now().Format("02012006") // Generates a timestamp for naming the new audit sheet.
 	refSheet := file.Sheet["Baseline"]
 	newSheetName := fmt.Sprintf("Audit %s", dateTime)
 	newSheet := file.Sheet[newSheetName]
@@ -59,7 +59,7 @@ func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 	return nil
 }
 
-// Evaluate differences between two slices of InterfaceData (reference data and new data).
+// CompareData evaluates differences between two slices of InterfaceData (reference data and new data).
 func compareData(refData, newData []InterfaceData) int {
 	nodeFiles := make(map[string]*os.File)
 	statusSummary := make(map[string]map[string]int)        // A nested map to track status summaries per node.
@@ -151,11 +151,11 @@ func compareFields(a, b InterfaceData) []string {
 	//if a.VLAN != b.VLAN {
 	//	diffs = append(diffs, fmt.Sprintf("VLAN: Reference(%s) New(%s)", a.VLAN, b.VLAN))
 	//}
-	if a.Port != b.Port {
-		diffs = append(diffs, fmt.Sprintf("Port: Reference(%s) New(%s)", a.Port, b.Port))
-	}
-	if a.Slot != b.Slot {
-		diffs = append(diffs, fmt.Sprintf("Slot: Reference(%s) New(%s)", a.Slot, b.Slot))
-	}
+	//if a.Port != b.Port {
+	//	diffs = append(diffs, fmt.Sprintf("Port: Reference(%s) New(%s)", a.Port, b.Port))
+	//}
+	//if a.Slot != b.Slot {
+	//	diffs = append(diffs, fmt.Sprintf("Slot: Reference(%s) New(%s)", a.Slot, b.Slot))
+	//}
 	return diffs
 }
