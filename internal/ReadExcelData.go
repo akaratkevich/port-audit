@@ -2,13 +2,10 @@ package internal
 
 import (
 	"github.com/tealeg/xlsx"
-	"sync"
 )
 
-// Read data from a given Excel sheet and returns a slice of InterfaceData.
-func ReadExcelData(sheet *xlsx.Sheet, headerMap map[string]int, ch chan<- []InterfaceData, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+// ReadExcelData reads data from a given Excel sheet and returns a slice of InterfaceData.
+func ReadExcelData(sheet *xlsx.Sheet, headerMap map[string]int) []InterfaceData {
 	var data []InterfaceData
 
 	for _, row := range sheet.Rows[1:] { // Skip the header row
@@ -26,7 +23,7 @@ func ReadExcelData(sheet *xlsx.Sheet, headerMap map[string]int, ch chan<- []Inte
 		data = append(data, entry)
 	}
 
-	ch <- data
+	return data
 }
 
 // Get the value of a cell by index with a fallback for missing cells.
@@ -35,4 +32,13 @@ func getCellValue(row *xlsx.Row, headerMap map[string]int, header string) string
 		return row.Cells[idx].String()
 	}
 	return ""
+}
+
+// GetHeaderMap reads the headers from the first row of the sheet and returns a map of header names to their indices.
+func getHeaderMap(sheet *xlsx.Sheet) map[string]int {
+	headerMap := make(map[string]int)
+	for i, cell := range sheet.Rows[0].Cells {
+		headerMap[cell.String()] = i
+	}
+	return headerMap
 }
