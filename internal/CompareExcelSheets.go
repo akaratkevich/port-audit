@@ -6,9 +6,27 @@ import (
 	"github.com/tealeg/xlsx"
 	"log"
 	"os"
-	"sync"
 	"time"
 )
+
+// Filter the reference data to include only relevant columns and devices.
+func FilterData(refData, newData []InterfaceData, logger *pterm.Logger) []InterfaceData {
+	newNodes := make(map[string]bool)
+	for _, d := range newData {
+		newNodes[d.Node] = true
+	}
+
+	var filteredData []InterfaceData
+	for _, d := range refData {
+		if newNodes[d.Node] {
+			filteredData = append(filteredData, d)
+		}
+	}
+	log.Printf("Filtered data", filteredData) // send to the log file
+	//logger.Trace("FilterData", logger.Args(filteredData))
+	return filteredData
+
+}
 
 // CompareExcelSheets compares two Excel sheets for differences.
 func CompareExcelSheets(filename string, logger *pterm.Logger) error {
@@ -26,60 +44,22 @@ func CompareExcelSheets(filename string, logger *pterm.Logger) error {
 		return fmt.Errorf("Missing Excel sheets for comparison (reference or new sheet not found)")
 	}
 
-	headerMap := getHeaderMap(refSheet)
+	refData, err := ReadExcelData(refSheet) // Read data from the reference sheet.
+	if err != nil {
+		return fmt.Errorf("Failed to read reference sheet data: %v", err)
+	}
 
-	var wg sync.WaitGroup
-	refCh := make(chan []InterfaceData)
-	newCh := make(chan []InterfaceData)
+	newData, err := ReadExcelData(newSheet) // Read data from the newly created sheet
+	if err != nil {
+		return fmt.Errorf("Failed to read new sheet data: %v", err)
+	}
 
-	// Read reference data concurrently
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		refData := ReadExcelData(refSheet, headerMap)
-		refCh <- refData
-	}()
-
-	// Read new data concurrently
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		newData := ReadExcelData(newSheet, headerMap)
-		newCh <- newData
-	}()
-
-	// Wait for reading goroutines to finish
-	go func() {
-		wg.Wait()
-		close(refCh)
-		close(newCh)
-	}()
-
-	refData := <-refCh
-	newData := <-newCh
-
-	filteredRefData := FilterData(refData, newData) // Filter the reference data
+	filteredRefData := FilterData(refData, newData, logger) // Filter the reference data
 
 	diffCount := compareData(filteredRefData, newData) // Compare data from the two sheets
 	log.Printf("Audit completed: %d differences found", diffCount)
 	logger.Trace("Completed data comparison.", logger.Args("Differences found", diffCount))
 	return nil
-}
-
-// FilterData filters the reference data to include only relevant columns and devices.
-func FilterData(refData, newData []InterfaceData) []InterfaceData {
-	newNodes := make(map[string]bool)
-	for _, d := range newData {
-		newNodes[d.Node] = true
-	}
-
-	var filteredData []InterfaceData
-	for _, d := range refData {
-		if newNodes[d.Node] {
-			filteredData = append(filteredData, d)
-		}
-	}
-	return filteredData
 }
 
 // CompareData evaluates differences between two slices of InterfaceData (reference data and new data).
@@ -112,9 +92,8 @@ func compareData(refData, newData []InterfaceData) int {
 		refMap[key] = d
 	}
 
-	diffCount := 0
-
 	// Compare new data against reference data and write differences
+	diffCount := 0
 	for _, d := range newData {
 		key := fmt.Sprintf("%s-%s-%s", d.Node, d.Slot, d.Port)
 		ref, exists := refMap[key]
