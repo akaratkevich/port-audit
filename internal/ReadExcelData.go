@@ -16,18 +16,16 @@ Returns:
   - error: Returns an error if any issues occur during the data extraction process.
 */
 
-// ReadExcelData reads data from a given Excel sheet and returns a slice of InterfaceData.
 func ReadExcelData(sheet *xlsx.Sheet) ([]InterfaceData, error) {
 	var data []InterfaceData
 	var headerMap = make(map[string]int)
 
-	// Assume the first row is the header
 	for i, cell := range sheet.Rows[0].Cells {
 		headerMap[cell.String()] = i
 	}
 
 	// Required headers
-	requiredHeaders := []string{"Switch Name", "TYPE", "Port Description", "Port Status", "SPEED", "Duplex", "VLAN", "PORT", "SLOT"} //"Interface" is not in the ref sheet
+	requiredHeaders := []string{"Switch Name", "SLOT", "PORT", "TYPE", "Port Status", "VLAN", "Duplex", "SPEED", "Port Description"} //"Interface" is not in the ref sheet
 
 	// Check if all required headers are present
 	for _, header := range requiredHeaders {
@@ -40,14 +38,14 @@ func ReadExcelData(sheet *xlsx.Sheet) ([]InterfaceData, error) {
 		entry := InterfaceData{
 			Node:        getCellValue(row, headerMap["Switch Name"]),
 			Interface:   getCellValue(row, headerMap["Interface"]),
-			Type:        getCellValue(row, headerMap["TYPE"]),
+			Slot:        getCellValue(row, headerMap["SLOT"]),
+			Port:        getCellValue(row, headerMap["PORT"]),
 			Description: getCellValue(row, headerMap["Port Description"]),
 			Status:      getCellValue(row, headerMap["Port Status"]),
 			Speed:       getCellValue(row, headerMap["SPEED"]),
 			Duplex:      getCellValue(row, headerMap["Duplex"]),
 			VLAN:        getCellValue(row, headerMap["VLAN"]),
-			Slot:        getCellValue(row, headerMap["SLOT"]),
-			Port:        getCellValue(row, headerMap["PORT"]),
+			Type:        getCellValue(row, headerMap["TYPE"]),
 		}
 		data = append(data, entry)
 	}

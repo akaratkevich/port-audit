@@ -10,7 +10,7 @@ import (
 )
 
 // Filter the reference data to include only relevant columns and devices.
-func FilterData(refData, newData []InterfaceData) []InterfaceData {
+func FilterData(refData, newData []InterfaceData, logger *pterm.Logger) []InterfaceData {
 	newNodes := make(map[string]bool)
 	for _, d := range newData {
 		newNodes[d.Node] = true
@@ -22,7 +22,9 @@ func FilterData(refData, newData []InterfaceData) []InterfaceData {
 			filteredData = append(filteredData, d)
 		}
 	}
+	logger.Trace("FilterData", logger.Args(filteredData))
 	return filteredData
+
 }
 
 // CompareExcelSheets compares two Excel sheets for differences.
