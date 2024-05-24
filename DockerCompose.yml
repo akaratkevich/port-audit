@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  port-audit-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: port-audit-builder
+    volumes:
+      - ./workspace/port-audit/bin/linuxX64:/workspace/port-audit/bin/linuxX64
+    environment:
+      - GOROOT=/usr/local/go
+      - GOPATH=/go
+      - PATH=/usr/local/go/bin:/go/bin:$PATH
+

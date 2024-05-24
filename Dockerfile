@@ -23,23 +23,3 @@ RUN mkdir -p $GOPATH/src $GOPATH/bin $GOPATH/pkg
 # Set up a working directory
 WORKDIR /workspace
 
-# Clone the repository
-#RUN git clone https://github.com/akaratkevich/port-audit.git
-
-# Change working directory to the cloned repository
-# WORKDIR /workspace/port-audit/cmd
-
-# Build the Go binary
-#RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-extldflags=-static" -o /workspace/port-audit/bin/linuxX64/port-audit
-
-# Verify the binary is built
-#RUN ls -l /workspace/port-audit/bin/linuxX64
-
-# Expose any ports if needed
-# EXPOSE 8080
-
-#########
-# docker build -t port-audit-builder .
-# docker run -it port-audit-builder /bin/bash
-
-
