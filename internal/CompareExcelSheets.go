@@ -104,6 +104,11 @@ func compareData(refData, newData []InterfaceData) int {
 		ref, exists := refMap[key]
 		file, fileExists := nodeFiles[d.Node]
 
+		// Skip comparison if the reference data description is "Faulty Port"
+		if exists && ref.Description == "Faulty Port" {
+			continue
+		}
+
 		if exists && fileExists {
 			diffs := compareFields(ref, d)
 			if len(diffs) > 0 {
