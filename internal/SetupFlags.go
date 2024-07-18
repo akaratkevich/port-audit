@@ -6,14 +6,15 @@ import (
 	"os"
 )
 
-// Return pointers to the values of the flags.
-func SetupFlags() (username *string, password *string, filePath *string, baseFile *bool, generateInv *bool, err error) {
+// SetupFlags parses the command-line flags and returns their values.
+func SetupFlags() (username, password, filePath *string, baseFile, generateInv, usageGuide *bool, err error) {
 	// Define flags
+	usageGuide = flag.Bool("usage", false, "Display the usage guide")
 	username = flag.String("u", "", "Username for device access")
 	password = flag.String("p", "", "Password for device access")
 	filePath = flag.String("f", "", "File path")
-	baseFile = flag.Bool("base", false, "Create initial Excel filePath with a baseline sheet")
-	generateInv = flag.Bool("gen", false, "Generate a yaml inventory filePath from a list of devices")
+	baseFile = flag.Bool("base", false, "Create initial Excel file with a baseline sheet")
+	generateInv = flag.Bool("gen", false, "Generate a YAML inventory file from a list of devices")
 
 	// Custom usage message
 	flag.Usage = func() {
@@ -21,13 +22,16 @@ func SetupFlags() (username *string, password *string, filePath *string, baseFil
 		flag.PrintDefaults()
 	}
 
-	// Parse the command line flags
+	// Parse the command-line flags
 	flag.Parse()
 
-	// If the generate inventory flag is set and an inventory file is provided,
-	// return immediately to allow for inventory file generation.
+	// Return if only the usage guide flag is set
+	if *usageGuide {
+		return
+	}
+
+	// If the generate inventory flag is set and an inventory file is provided, return
 	if *generateInv && *filePath != "" {
-		// No further validation is needed since we're just generating a file.
 		return
 	}
 
@@ -36,17 +40,17 @@ func SetupFlags() (username *string, password *string, filePath *string, baseFil
 	return
 }
 
-// Check if necessary flags are provided; return an error if any are missing.
-func validateFlags(username, password, file *string) error {
+// validateFlags checks if necessary flags are provided and returns an error if any are missing.
+func validateFlags(username, password, filePath *string) error {
 	// Validate required flags
 	if *username == "" {
-		return fmt.Errorf("error: Username is required. Please provide a username with --u (eg. --u admin)")
+		return fmt.Errorf("error: Username is required. Please provide a username with --u (e.g., --u admin)")
 	}
 	if *password == "" {
-		return fmt.Errorf("error: Password is required. Please provide a password with --p (eg. --p password)")
+		return fmt.Errorf("error: Password is required. Please provide a password with --p (e.g., --p password)")
 	}
-	if *file == "" {
-		return fmt.Errorf("error: Inventory file is required. Please provide a file with --f (eg. --f ./Inventory.yml)")
+	if *filePath == "" {
+		return fmt.Errorf("error: Inventory file is required. Please provide a file with --f (e.g., --f ./Inventory.yml)")
 	}
 
 	return nil

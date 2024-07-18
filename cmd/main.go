@@ -11,39 +11,53 @@ import (
 )
 
 func main() {
+
+	// Start the timer
 	startTime := time.Now()
 
 	// Create a screen logger
 	logger := pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
 
-	logger.Trace("Staring the port-audit process...") // Log to the screen
+	// Log to the screen starting of the application
+	logger.Trace("Staring the port-audit process...\n")
 
-	// Open a filePath for writing logs.
+	// Open a file for writing logs.
 	logFile, err := os.OpenFile("port-audit-application.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		log.Fatalf("Error opening log filePath: %v", err)
+		log.Fatalf("Error opening log file: %v", err)
 	}
 	defer logFile.Close()
 
 	// Set the output of logs to the filePath
 	log.SetOutput(logFile)
 
-	// ---- !!! FROM THIS POINT ON, ALL LOG MESSAGES WILL BE WRITTEN TO THE FILE !!! ----
+	// FROM THIS POINT ON, ALL LOG MESSAGES WILL BE WRITTEN TO THE FILE
 
-	// 1. Setup and parse command-line arguments
-	username, password, filePath, baseFile, generateInv, err := internal.SetupFlags()
+	// Setup and parse command-line arguments
+	username, password, filePath, baseFile, generateInv, usageGuide, err := internal.SetupFlags()
+
+	// Check if the usage flag is set and display the usage guide
+	if *usageGuide {
+		internal.PrintUsageGuide(internal.CiscoPortAuditUsageGuide)
+		logger.Info("Displaying usage guide only, exiting the program.")
+		log.Printf("Displaying usage guide only, exiting the program: %v", err)
+		os.Exit(0)
+	}
+
 	if *generateInv && *filePath != "" {
 		// Call function to generate inventory file
 		internal.GenerateInventory(*filePath, logger)
 		return
 	} else if err != nil {
 		logger.Fatal("Exiting the program due to setup failure", logger.Args("Reason", err)) // Log to the screen
+		log.Printf("Exiting the program due to setup failure: %v", err)                      // Log to the filePath
 		os.Exit(1)
 	} else {
 		logger.Trace("Successfully passed the parameters for setup.") // log to the screen
+		log.Printf("Successfully passed the parameters for setup")    // Log to the filePath
 	}
 
-	// 1.5 Setup menu
+	// Setup menu
 	// Define command options and their corresponding SSH commands
 	options := []string{"NXOS/IOS - show interface status", "IOS - show interface description", "IOSXR - show interface description"}
 	commands := map[string]string{
@@ -59,11 +73,12 @@ func main() {
 	selectedCommand, exists := commands[selectedOption]
 	if !exists {
 		logger.Fatal("No valid command selected")
+		log.Printf("No valid command selected: %v", err) // Log to the filePath
 		os.Exit(1)
 	}
 	logger.Info("Selected command:", logger.Args("Command", pterm.Green(selectedCommand)))
 
-	// 2. Read the inventory filePath
+	// Read the inventory file
 	inventory, err := internal.ReadInventory(*filePath, logger)
 	if err != nil {
 		log.Printf("Error: Failed to read inventory: %v. Exiting the program due to inventory load failure.", err) // Log to the filePath
@@ -71,8 +86,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	// 3. Setup concurrency
+	// Setup concurrency
 	logger.Trace("Initialising concurrency...") // Log to the screen
+	log.Printf("Initialising concurrency...")   // Log to the filePath
 	dataChan := make(chan internal.InterfaceData)
 	var wg sync.WaitGroup
 
@@ -86,6 +102,8 @@ func main() {
 	workQueue := make(chan internal.Device, len(inventory.Devices))
 
 	logger.Trace("Launching worker goroutines for device processing...") // Log to the screen
+	log.Printf("Launching worker goroutines for device processing...")   // Log to the filePath
+
 	// Start worker goroutines
 	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
@@ -96,7 +114,7 @@ func main() {
 			}
 		}()
 	}
-	// 4. Distribute work among workers
+	// Distribute work among workers
 	logger.Trace("Distributing tasks among workers...", logger.Args("Workers", numWorkers), logger.Args("Work Queue", len(inventory.Devices))) // Log to the screen
 
 	for _, device := range inventory.Devices {
@@ -105,6 +123,8 @@ func main() {
 	close(workQueue)
 
 	logger.Trace("Aggregating processed data...") // Log to the screen
+	log.Printf("Aggregating processed data...")   // Log to the filePath
+
 	// Use another goroutine to read from the channel and collect data
 	allData := make([]internal.InterfaceData, 0)
 	go func() {
@@ -120,6 +140,7 @@ func main() {
 	// Check if at least some devices were processed
 	if failureCounter > 0 {
 		logger.Warn("Some devices encountered connection issues. Please check the application log for detailed error messages.", logger.Args("Total failed connections", failureCounter))
+		log.Printf("Some devices encountered connection issues. Total number of failed connections: %d", failureCounter)
 	}
 	// Check if data collection was successful
 	if len(allData) <= 0 {
@@ -130,8 +151,9 @@ func main() {
 		logger.Info("Data collection successful.", logger.Args("Total interfaces collected", len(allData)))
 	}
 
-	// 7. Perform Excel operations based on the command line option.
+	// Perform Excel operations based on the command line option.
 	logger.Trace("Initiating Excel and data comparison operations, and preparing final reports....") // Log to the screen
+	log.Printf("Initiating Excel and data comparison operations, and preparing final reports...")    // Log to file
 	internal.ExcelOperations(allData, *baseFile, logger)
 
 	// 8. Zip the files

@@ -38,5 +38,6 @@ func ExcelOperations(allData []InterfaceData, baseFile bool, logger *pterm.Logge
 	// Compare data in Excel sheets.
 	if err = CompareExcelSheets(filename, logger); err != nil {
 		log.Fatalf("Failed during Excel sheet comparison: %v", err)
+		logger.Fatal("Failed during Excel sheet comparison: %v", logger.Args(err))
 	}
 }
