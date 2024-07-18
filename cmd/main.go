@@ -44,18 +44,41 @@ func main() {
 		os.Exit(0)
 	}
 
-	if *generateInv && *filePath != "" {
+	// Check if the generate inventory flag is set and a file path is provided
+	if *generateInv {
+		if *filePath == "" {
+			logger.Fatal("File path is required for generating inventory.")
+			log.Printf("File path is required for generating inventory.")
+			os.Exit(1)
+		}
 		// Call function to generate inventory file
 		internal.GenerateInventory(*filePath, logger)
 		return
-	} else if err != nil {
+	}
+
+	// Check for required parameters
+	if err != nil {
 		logger.Fatal("Exiting the program due to setup failure", logger.Args("Reason", err)) // Log to the screen
 		log.Printf("Exiting the program due to setup failure: %v", err)                      // Log to the filePath
 		os.Exit(1)
-	} else {
-		logger.Trace("Successfully passed the parameters for setup.") // log to the screen
-		log.Printf("Successfully passed the parameters for setup")    // Log to the filePath
 	}
+
+	if *username == "" {
+		err = fmt.Errorf("username is required")
+		logger.Fatal("Exiting the program due to setup failure", logger.Args("Reason", err)) // Log to the screen
+		log.Printf("Exiting the program due to setup failure: %v", err)                      // Log to the filePath
+		os.Exit(1)
+	}
+
+	if *password == "" {
+		err = fmt.Errorf("password is required")
+		logger.Fatal("Exiting the program due to setup failure", logger.Args("Reason", err)) // Log to the screen
+		log.Printf("Exiting the program due to setup failure: %v", err)                      // Log to the filePath
+		os.Exit(1)
+	}
+
+	logger.Trace("Successfully passed the parameters for setup.") // log to the screen
+	log.Printf("Successfully passed the parameters for setup")    // Log to the filePath
 
 	// Setup menu
 	// Define command options and their corresponding SSH commands

@@ -19,7 +19,7 @@ Example: port-audit -u admin -p admin123 -f inventory.yml
 6. Difference report files will be generated per device.
 
 Note:
-- The inventory file can be generated using the Utilities Tools in NetOps application (Create YAML Inventory File).
+- The inventory file can be generated using --gen flag (Create YAML Inventory File).
 
 Example of inventory file (YAML format):
 --------------------------------------
